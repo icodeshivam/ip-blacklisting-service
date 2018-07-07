@@ -2,12 +2,15 @@ package com.icodeshivam.blacklisting.controller;
 
 import com.icodeshivam.blacklisting.model.CIDRIpRange;
 import com.icodeshivam.blacklisting.model.IpAddressMaskIpRange;
+import com.icodeshivam.blacklisting.model.IpRange;
 import com.icodeshivam.blacklisting.service.IPFilteringService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/ipblacklisting")
@@ -51,7 +54,12 @@ public class IPBlacklistingController {
         return new ResponseEntity<>(blackListedIP, HttpStatus.OK);
     }
 
-
+    @RequestMapping("/allFilters")
+    @GetMapping
+    @ResponseBody
+    public List<IpRange> getAllFilters() {
+        return ipFilteringService.getAllFilters();
+    }
 
 
 

@@ -2,17 +2,17 @@ package com.icodeshivam.blacklisting.service;
 
 import com.icodeshivam.blacklisting.model.CIDRIpRange;
 import com.icodeshivam.blacklisting.model.IpAddressMaskIpRange;
+import com.icodeshivam.blacklisting.model.IpRange;
+
+import java.util.List;
 
 public interface IPFilteringService {
 
-    void addBlacklistedIpRange(IpAddressMaskIpRange ipAddressMaskIpRange);
+    void addBlacklistedIpRange(IpRange ipRange);
 
-    void addBlacklistedIpRange(CIDRIpRange cidrNotation);
-
-    boolean deleteBlacklistedIpRange(IpAddressMaskIpRange ipAddressMaskIpRange);
-
-    boolean deleteBlacklistedIpRange(CIDRIpRange cidrIpRange);
+    boolean deleteBlacklistedIpRange(IpRange ipRange);
 
     boolean isBlackListedIP(String ipAddress);
 
+    List<IpRange> getAllFilters();
 }

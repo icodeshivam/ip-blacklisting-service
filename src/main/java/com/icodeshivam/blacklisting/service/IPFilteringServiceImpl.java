@@ -21,27 +21,15 @@ public class IPFilteringServiceImpl implements IPFilteringService {
     private List<IpRange> blacklistedIpRangeRegistry = new CopyOnWriteArrayList<>();
 
     @Override
-    public void addBlacklistedIpRange(IpAddressMaskIpRange ipAddressMaskIpRange) {
-        validateMaskRange(ipAddressMaskIpRange);
-        blacklistedIpRangeRegistry.add(ipAddressMaskIpRange);
+    public void addBlacklistedIpRange(IpRange ipRange) {
+        validateAndGetSubnetInfo(ipRange);
+        blacklistedIpRangeRegistry.add(ipRange);
     }
 
     @Override
-    public void addBlacklistedIpRange(CIDRIpRange cidrNotation) {
-        validateCidrRange(cidrNotation);
-        blacklistedIpRangeRegistry.add(cidrNotation);
-    }
-
-    @Override
-    public boolean deleteBlacklistedIpRange(IpAddressMaskIpRange ipAddressMaskIpRange) {
-        validateMaskRange(ipAddressMaskIpRange);
+    public boolean deleteBlacklistedIpRange(IpRange ipAddressMaskIpRange) {
+        validateAndGetSubnetInfo(ipAddressMaskIpRange);
         return blacklistedIpRangeRegistry.remove(ipAddressMaskIpRange);
-    }
-
-    @Override
-    public boolean deleteBlacklistedIpRange(CIDRIpRange cidrIpRange) {
-        validateCidrRange(cidrIpRange);
-        return blacklistedIpRangeRegistry.remove(cidrIpRange);
     }
 
     @Override
@@ -52,8 +40,12 @@ public class IPFilteringServiceImpl implements IPFilteringService {
                      return this.checkInRange(ipRange, ipAddress);
                 }));
 
-
         return isBlacklisted;
+    }
+
+    @Override
+    public List<IpRange> getAllFilters() {
+        return blacklistedIpRangeRegistry;
     }
 
     private void validateIp(String ipAddress) {
@@ -63,30 +55,27 @@ public class IPFilteringServiceImpl implements IPFilteringService {
     }
 
     private boolean checkInRange(IpRange ipRange, String ipAddress) {
-        SubnetUtils.SubnetInfo subnetInfo = null;
-        if(Notation.CIDR == ipRange.getNotation()) {
-            CIDRIpRange cidrIpRange = (CIDRIpRange) ipRange;
-            subnetInfo = new SubnetUtils(cidrIpRange.getCidrAddress()).getInfo();
-        } else  {
-            IpAddressMaskIpRange ipAddressMaskIpRange = (IpAddressMaskIpRange) ipRange;
-            subnetInfo = new SubnetUtils(ipAddressMaskIpRange.getAddress(), ipAddressMaskIpRange.getMask()).getInfo();
+        SubnetUtils.SubnetInfo subnetInfo = validateAndGetSubnetInfo(ipRange);
+        boolean isBlacklisted = false;
+        if(null != subnetInfo) {
+            isBlacklisted = subnetInfo.isInRange(ipAddress);
         }
-        return subnetInfo.isInRange(ipAddress);
+        return isBlacklisted;
     }
 
-    private void validateMaskRange(IpAddressMaskIpRange ipAddressMaskIpRange) {
+    private SubnetUtils.SubnetInfo validateAndGetSubnetInfo(IpRange ipRange) {
+        SubnetUtils.SubnetInfo subnetInfo = null;
         try {
-            new SubnetUtils(ipAddressMaskIpRange.getAddress(), ipAddressMaskIpRange.getMask());
+            if(Notation.CIDR == ipRange.getNotation()) {
+                CIDRIpRange cidrIpRange = (CIDRIpRange) ipRange;
+                subnetInfo = new SubnetUtils(cidrIpRange.getCidrAddress()).getInfo();
+            } else  {
+                IpAddressMaskIpRange ipAddressMaskIpRange = (IpAddressMaskIpRange) ipRange;
+                subnetInfo = new SubnetUtils(ipAddressMaskIpRange.getAddress(), ipAddressMaskIpRange.getMask()).getInfo();
+            }
         } catch (IllegalArgumentException ex) {
             throw new ValidationException(ErrorCodes.INVALID_MASK_NOTATION);
         }
-    }
-
-    private void validateCidrRange(CIDRIpRange cidrIpRange) {
-        try {
-            new SubnetUtils(cidrIpRange.getCidrAddress());
-        } catch (IllegalArgumentException ex) {
-            throw new ValidationException(ErrorCodes.INVALID_CIDR_NOTATION);
-        }
+        return subnetInfo;
     }
 }
