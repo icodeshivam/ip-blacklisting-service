@@ -33,14 +33,14 @@ public class IPBlacklistingController {
     @RequestMapping("/removeCidrFilter")
     @DeleteMapping
     public ResponseEntity<Void> deleteCIDRFilter(@RequestBody CIDRIpRange cidrNotation) {
-        ipFilteringService.addBlacklistedIpRange(cidrNotation);
+        ipFilteringService.deleteBlacklistedIpRange(cidrNotation);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @RequestMapping("/removeMaskFilter")
     @DeleteMapping
     public ResponseEntity<Void> deleteMaskFilter(@RequestBody IpAddressMaskIpRange ipAddressMaskIpRange) {
-        ipFilteringService.addBlacklistedIpRange(ipAddressMaskIpRange);
+        ipFilteringService.deleteBlacklistedIpRange(ipAddressMaskIpRange);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

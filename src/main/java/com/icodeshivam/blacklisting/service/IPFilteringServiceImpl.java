@@ -9,40 +9,44 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Pattern;
 
 @Service
 public class IPFilteringServiceImpl implements IPFilteringService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IPFilteringServiceImpl.class);
+    private static final Pattern PATTERN = Pattern.compile(
+            "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
 
     private List<IpRange> blacklistedIpRangeRegistry = new CopyOnWriteArrayList<>();
 
     @Override
     public void addBlacklistedIpRange(IpAddressMaskIpRange ipAddressMaskIpRange) {
-        validate(ipAddressMaskIpRange);
+        validateMaskRange(ipAddressMaskIpRange);
         blacklistedIpRangeRegistry.add(ipAddressMaskIpRange);
     }
 
     @Override
     public void addBlacklistedIpRange(CIDRIpRange cidrNotation) {
-        validate(cidrNotation);
+        validateCidrRange(cidrNotation);
         blacklistedIpRangeRegistry.add(cidrNotation);
     }
 
     @Override
     public boolean deleteBlacklistedIpRange(IpAddressMaskIpRange ipAddressMaskIpRange) {
-        validate(ipAddressMaskIpRange);
+        validateMaskRange(ipAddressMaskIpRange);
         return blacklistedIpRangeRegistry.remove(ipAddressMaskIpRange);
     }
 
     @Override
     public boolean deleteBlacklistedIpRange(CIDRIpRange cidrIpRange) {
-        validate(cidrIpRange);
+        validateCidrRange(cidrIpRange);
         return blacklistedIpRangeRegistry.remove(cidrIpRange);
     }
 
     @Override
     public boolean isBlackListedIP(String ipAddress) {
+        validateIp(ipAddress);
         boolean isBlacklisted = blacklistedIpRangeRegistry.stream()
                 .anyMatch(((IpRange ipRange) -> {
                      return this.checkInRange(ipRange, ipAddress);
@@ -50,6 +54,12 @@ public class IPFilteringServiceImpl implements IPFilteringService {
 
 
         return isBlacklisted;
+    }
+
+    private void validateIp(String ipAddress) {
+        if(!PATTERN.matcher(ipAddress).matches()) {
+            throw new ValidationException(ErrorCodes.INVALID_IP);
+        }
     }
 
     private boolean checkInRange(IpRange ipRange, String ipAddress) {
@@ -64,7 +74,7 @@ public class IPFilteringServiceImpl implements IPFilteringService {
         return subnetInfo.isInRange(ipAddress);
     }
 
-    private void validate(IpAddressMaskIpRange ipAddressMaskIpRange) {
+    private void validateMaskRange(IpAddressMaskIpRange ipAddressMaskIpRange) {
         try {
             new SubnetUtils(ipAddressMaskIpRange.getAddress(), ipAddressMaskIpRange.getMask());
         } catch (IllegalArgumentException ex) {
@@ -72,7 +82,7 @@ public class IPFilteringServiceImpl implements IPFilteringService {
         }
     }
 
-    private void validate(CIDRIpRange cidrIpRange) {
+    private void validateCidrRange(CIDRIpRange cidrIpRange) {
         try {
             new SubnetUtils(cidrIpRange.getCidrAddress());
         } catch (IllegalArgumentException ex) {
