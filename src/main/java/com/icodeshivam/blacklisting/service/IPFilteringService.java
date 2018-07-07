@@ -5,6 +5,7 @@ import com.icodeshivam.blacklisting.model.IpAddressMaskIpRange;
 import com.icodeshivam.blacklisting.model.IpRange;
 
 import java.util.List;
+import java.util.Set;
 
 public interface IPFilteringService {
 
@@ -14,5 +15,5 @@ public interface IPFilteringService {
 
     boolean isBlackListedIP(String ipAddress);
 
-    List<IpRange> getAllFilters();
+    Set<IpRange> getAllFilters();
 }

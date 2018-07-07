@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+import java.util.Set;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -82,7 +83,7 @@ public class IPFilterSerivceTest {
     public void whenCorrectIpRangeAdded_flowsucceeds() {
         ipFilteringService.addBlacklistedIpRange(new CIDRIpRange("192.168.0.0/23"));
         ipFilteringService.addBlacklistedIpRange(new IpAddressMaskIpRange("192.168.0.0", "255.255.254.0"));
-        List<IpRange> allFilters = ipFilteringService.getAllFilters();
+        Set<IpRange> allFilters = ipFilteringService.getAllFilters();
         Assert.assertTrue(allFilters.size() == 2);
     }
 

@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
 
 @Service
@@ -18,7 +20,7 @@ public class IPFilteringServiceImpl implements IPFilteringService {
     private static final Pattern PATTERN = Pattern.compile(
             "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
 
-    private List<IpRange> blacklistedIpRangeRegistry = new CopyOnWriteArrayList<>();
+    private Set<IpRange> blacklistedIpRangeRegistry = new CopyOnWriteArraySet<>();
 
     @Override
     public void addBlacklistedIpRange(IpRange ipRange) {
@@ -44,7 +46,7 @@ public class IPFilteringServiceImpl implements IPFilteringService {
     }
 
     @Override
-    public List<IpRange> getAllFilters() {
+    public Set<IpRange> getAllFilters() {
         return blacklistedIpRangeRegistry;
     }
 
